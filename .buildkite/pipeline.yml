@@ -1,0 +1,26 @@
+agents:
+  queue: central
+  slurm_mem: 8G
+  modules: julia/1.10.0
+
+env:
+  JULIA_VERSION: "1.10.0"
+
+steps:
+  - label: "init environment :computer:"
+    key: "init_env"
+    command:
+      - echo "--- Instantiate test env"
+      - julia --project=test -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate(;verbose=true); Pkg.precompile(;strict=true); Pkg.status()'
+
+    agents:
+      slurm_ntasks: 1
+
+  - wait
+
+  - label: "Tests"
+    command:
+      - "julia --project=test test/runtests.jl"
+    agents:
+      slurm_ntasks: 1
+    timeout_in_minutes: 10
